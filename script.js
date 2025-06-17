@@ -11,16 +11,17 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-// Nickname awal
+// Nickname
 let nickname = localStorage.getItem("nickname") || "Guest";
 document.getElementById("greeting").innerText = "Halo, " + nickname + "!";
 
-// Game logic
+// Data game
 let currentPlayer = 1;
 let positions = [1, 1];
 const snakes = { 40: 1, 24: 6, 54: 27, 85: 65, 91: 73 };
 const ladders = { 9: 28, 18: 44, 15: 45, 55: 45, 50: 53, 60: 64, 87: 95 };
 
+// Elemen DOM
 const board = document.getElementById("board");
 const rollBtn = document.getElementById("rollBtn");
 const dice = document.getElementById("dice");
@@ -113,6 +114,10 @@ function saveWin(player) {
 
 // Navigasi
 document.getElementById("btnLocal").onclick = () => {
+  positions = [1, 1];
+  currentPlayer = 1;
+  updatePawns();
+  turnIndicator.innerText = "Giliran: Pemain 1 🔴";
   document.getElementById("menu").style.display = "none";
   document.getElementById("game").style.display = "block";
 };
@@ -164,30 +169,103 @@ document.getElementById("btnGantiNickname").onclick = () => {
     document.getElementById("greeting").innerText = `Halo, ${nickname}!`;
   }
 };
+
 document.getElementById("btnOnline").onclick = () => {
   const roomCode = prompt("Masukkan kode room atau biarkan kosong untuk membuat:");
   if (roomCode === null) return;
 
   const finalRoom = roomCode.trim() || Math.random().toString(36).substring(2, 7);
-  const playerRef = db.ref("rooms/" + finalRoom + "/players");
+  const roomRef = db.ref("rooms/" + finalRoom);
+  const playersRef = roomRef.child("players");
 
-  playerRef.once("value").then(snapshot => {
+  playersRef.once("value").then(snapshot => {
     const players = snapshot.val() || {};
     const playerCount = Object.keys(players).length;
 
     if (playerCount >= 2) {
       alert("Room sudah penuh!");
-    } else {
-      const playerId = playerCount === 0 ? "p1" : "p2";
-      playerRef.child(playerId).set(nickname);
-
-      alert(`Berhasil masuk ke room: ${finalRoom} sebagai ${playerId}`);
-      // Di sini kamu bisa lanjut ke tampilan game online
-      // Misal nanti kita buat game online terpisah dari game lokal
+      return;
     }
+
+    const playerId = playerCount === 0 ? "p1" : "p2";
+    playersRef.child(playerId).set(nickname);
+
+    alert(`Berhasil masuk ke room: ${finalRoom} sebagai ${playerId}`);
+
+    startOnlineGame(finalRoom, playerId);
   });
 };
-// Inisialisasi
+
+function startOnlineGame(roomCode, playerId) {
+  // Ganti ke tampilan menu ke tampilan lokal sementara (atau bisa buat gameOnline terpisah)
+  document.getElementById("menu").style.display = "none";
+  document.getElementById("game").style.display = "block";
+
+  const posRef = db.ref(`rooms/${roomCode}/positions`);
+  const turnRef = db.ref(`rooms/${roomCode}/turn`);
+  const winRef = db.ref(`rooms/${roomCode}/winner`);
+
+  // Inisialisasi
+  posRef.once("value").then(snapshot => {
+    if (!snapshot.exists()) posRef.set({ p1: 1, p2: 1 });
+  });
+  turnRef.once("value").then(snapshot => {
+    if (!snapshot.exists()) turnRef.set("p1");
+  });
+
+  // Listen perubahan posisi
+  posRef.on("value", snapshot => {
+    const data = snapshot.val();
+    if (data) {
+      positions = [data.p1 || 1, data.p2 || 1];
+      updatePawns();
+    }
+  });
+
+  // Listen giliran
+  turnRef.on("value", snapshot => {
+    const turn = snapshot.val();
+    currentPlayer = turn === "p1" ? 1 : 2;
+    turnIndicator.innerText = `Giliran: ${turn === "p1" ? "Pemain 1 🔴" : "Pemain 2 🔵"}`;
+    rollBtn.disabled = (turn !== playerId);
+  });
+
+  // Listen pemenang
+  winRef.on("value", snapshot => {
+    const winner = snapshot.val();
+    if (winner) {
+      if (winner === playerId) alert("🏆 Kamu menang!");
+      else alert("😢 Kamu kalah!");
+      saveWin(winner === playerId ? 1 : 2);
+      posRef.set({ p1: 1, p2: 1 });
+      winRef.remove();
+    }
+  });
+
+  // Event dadu online
+  rollBtn.onclick = () => {
+    rollBtn.disabled = true;
+    animateDiceRoll(result => {
+      const idx = playerId === "p1" ? 0 : 1;
+      let target = positions[idx] + result;
+      if (ladders[target]) target = ladders[target];
+      if (snakes[target]) target = snakes[target];
+      if (target > 100) target = positions[idx];
+
+      const updated = { p1: positions[0], p2: positions[1] };
+      updated[playerId] = target;
+      posRef.set(updated).then(() => {
+        if (target === 100) {
+          winRef.set(playerId);
+        } else {
+          turnRef.set(playerId === "p1" ? "p2" : "p1");
+        }
+      });
+    });
+  };
+}
+
+// Awal
 createBoard();
 updatePawns();
 turnIndicator.innerText = "Giliran: Pemain 1 🔴";
