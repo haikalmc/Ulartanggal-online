@@ -39,9 +39,44 @@
     <button id="btnBackLeaderboard">🔙 Kembali</button>
   </div>
 
+<div id="roomScreen" style="display: none;">
+  <h2>🌐 Multiplayer Online</h2>
+  <p id="roomCodeDisplay"></p>
+  <button id="btnCreateRoom">➕ Buat Room</button>
+  <br><br>
+  <input type="text" id="roomCodeInput" placeholder="Kode Room" />
+  <button id="btnJoinRoomFinal">🔗 Gabung</button>
+  <br><br>
+  <button id="btnBackRoom">🔙 Menu</button>
+</div>
+
+<div id="gameOnline" style="display: none;">
+  <h2>🎮 Ular Tangga Online</h2>
+  <div id="turnIndicatorOnline">Giliran: Pemain 1</div>
+  <div id="boardOnline" class="board"></div>
+  <div class="controls">
+    <button id="rollOnline">🎲 Roll</button>
+    <div id="diceOnline">🎲</div>
+  </div>
+  <button onclick="showMenu()">🔙 Menu</button>
+</div>
   <audio id="diceSound" src="dice-roll.mp3" preload="auto"></audio>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
   <script src="script.js"></script>
+
+  <script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyDKBpjaKi4h6m7Jk8syIOzSMz36EqdeyPE",
+    authDomain: "ulartangga-cf5c1.firebaseapp.com",
+    databaseURL: "https://ulartangga-cf5c1-default-rtdb.firebaseio.com",
+    projectId: "ulartangga-cf5c1",
+    storageBucket: "ulartangga-cf5c1.appspot.com",
+    messagingSenderId: "564275947810",
+    appId: "1:564275947810:web:e53cf40ea5d285cf711e2a"
+  };
+  firebase.initializeApp(firebaseConfig);
+</script>
+  
 </body>
 </html>
