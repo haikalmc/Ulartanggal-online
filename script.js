@@ -112,6 +112,17 @@ function saveWin(player) {
   });
 }
 
+function saveWinMultiplayer(isWinner) {
+  if (nickname === "Guest") return;
+  const statsRef = db.ref("stats/" + nickname);
+  statsRef.once("value").then(snapshot => {
+    const data = snapshot.val() || { total: 0, menang: 0 };
+    data.total += 1;
+    if (isWinner) data.menang += 1;
+    statsRef.set(data);
+  });
+}
+
 // Navigasi
 document.getElementById("btnLocal").onclick = () => {
   positions = [1, 1];
@@ -197,15 +208,14 @@ document.getElementById("btnOnline").onclick = () => {
 };
 
 function startOnlineGame(roomCode, playerId) {
-  // Ganti ke tampilan menu ke tampilan lokal sementara (atau bisa buat gameOnline terpisah)
   document.getElementById("menu").style.display = "none";
   document.getElementById("game").style.display = "block";
 
-  const posRef = db.ref(`rooms/${roomCode}/positions`);
-  const turnRef = db.ref(`rooms/${roomCode}/turn`);
-  const winRef = db.ref(`rooms/${roomCode}/winner`);
+  const roomRef = db.ref("rooms/" + roomCode);
+  const posRef = roomRef.child("positions");
+  const turnRef = roomRef.child("turn");
+  const winRef = roomRef.child("winner");
 
-  // Inisialisasi
   posRef.once("value").then(snapshot => {
     if (!snapshot.exists()) posRef.set({ p1: 1, p2: 1 });
   });
@@ -213,7 +223,6 @@ function startOnlineGame(roomCode, playerId) {
     if (!snapshot.exists()) turnRef.set("p1");
   });
 
-  // Listen perubahan posisi
   posRef.on("value", snapshot => {
     const data = snapshot.val();
     if (data) {
@@ -222,7 +231,6 @@ function startOnlineGame(roomCode, playerId) {
     }
   });
 
-  // Listen giliran
   turnRef.on("value", snapshot => {
     const turn = snapshot.val();
     currentPlayer = turn === "p1" ? 1 : 2;
@@ -230,19 +238,22 @@ function startOnlineGame(roomCode, playerId) {
     rollBtn.disabled = (turn !== playerId);
   });
 
-  // Listen pemenang
   winRef.on("value", snapshot => {
     const winner = snapshot.val();
     if (winner) {
-      if (winner === playerId) alert("🏆 Kamu menang!");
-      else alert("😢 Kamu kalah!");
-      saveWin(winner === playerId ? 1 : 2);
+      if (winner === playerId) {
+        alert("🏆 Kamu menang!");
+        saveWinMultiplayer(true);
+      } else {
+        alert("😢 Kamu kalah!");
+        saveWinMultiplayer(false);
+      }
       posRef.set({ p1: 1, p2: 1 });
       winRef.remove();
+      roomRef.remove(); // Optional: hapus room setelah game selesai
     }
   });
 
-  // Event dadu online
   rollBtn.onclick = () => {
     rollBtn.disabled = true;
     animateDiceRoll(result => {
