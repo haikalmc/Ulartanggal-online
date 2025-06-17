@@ -75,3 +75,15 @@ button {
   font-size: 20px;
   margin-bottom: 15px;
 }
+
+#boardOnline {
+  display: grid;
+  grid-template-columns: repeat(10, 40px);
+  grid-template-rows: repeat(10, 40px);
+  gap: 2px;
+  justify-content: center;
+  margin: 20px auto;
+  background-image: url('board.png');
+  background-size: cover;
+  width: fit-content;
+}
