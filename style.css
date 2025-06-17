@@ -51,3 +51,27 @@ button {
   font-size: 16px;
   cursor: pointer;
 }
+/* Sembunyikan semua screen di awal kecuali menu */
+#game, #statScreen, #leaderboardScreen {
+  display: none;
+}
+
+/* Indikator giliran */
+#turnIndicator {
+  font-weight: bold;
+  margin: 10px;
+  font-size: 18px;
+}
+
+/* Daftar Leaderboard dan Statistik */
+#leaderboardList, #statText {
+  margin-top: 20px;
+  font-size: 16px;
+  white-space: pre-line;
+}
+
+/* Responsif nickname greeting */
+#greeting {
+  font-size: 20px;
+  margin-bottom: 15px;
+}
