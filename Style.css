@@ -1,0 +1,53 @@
+body {
+  font-family: Arial, sans-serif;
+  text-align: center;
+  background: #f0f0f0;
+  margin: 0;
+}
+
+#menu, #game, #statScreen, #leaderboardScreen {
+  padding: 20px;
+}
+
+#board {
+  display: grid;
+  grid-template-columns: repeat(10, 40px);
+  grid-template-rows: repeat(10, 40px);
+  gap: 2px;
+  justify-content: center;
+  margin: 20px auto;
+  background-image: url('board.png');
+  background-size: cover;
+  width: fit-content;
+}
+
+.square {
+  width: 40px;
+  height: 40px;
+  background-color: rgba(255, 255, 255, 0.6);
+  border: 1px solid #ccc;
+  position: relative;
+}
+
+.pawn {
+  position: absolute;
+  font-size: 20px;
+  top: 10px;
+  left: 10px;
+}
+
+.controls {
+  margin-top: 10px;
+}
+
+#dice {
+  font-size: 30px;
+  margin: 10px;
+}
+
+button {
+  margin: 5px;
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+}
