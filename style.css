@@ -51,39 +51,24 @@ button {
   font-size: 16px;
   cursor: pointer;
 }
-/* Sembunyikan semua screen di awal kecuali menu */
+
 #game, #statScreen, #leaderboardScreen {
   display: none;
 }
 
-/* Indikator giliran */
 #turnIndicator {
   font-weight: bold;
   margin: 10px;
   font-size: 18px;
 }
 
-/* Daftar Leaderboard dan Statistik */
 #leaderboardList, #statText {
   margin-top: 20px;
   font-size: 16px;
   white-space: pre-line;
 }
 
-/* Responsif nickname greeting */
 #greeting {
   font-size: 20px;
   margin-bottom: 15px;
-}
-
-#boardOnline {
-  display: grid;
-  grid-template-columns: repeat(10, 40px);
-  grid-template-rows: repeat(10, 40px);
-  gap: 2px;
-  justify-content: center;
-  margin: 20px auto;
-  background-image: url('board.png');
-  background-size: cover;
-  width: fit-content;
-}
+  }
