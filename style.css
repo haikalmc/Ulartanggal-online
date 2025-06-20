@@ -9,6 +9,15 @@ body {
   padding: 20px;
 }
 
+#game, #statScreen, #leaderboardScreen {
+  display: none;
+}
+
+#greeting {
+  font-size: 20px;
+  margin-bottom: 15px;
+}
+
 #board {
   display: grid;
   grid-template-columns: repeat(10, 40px);
@@ -52,10 +61,6 @@ button {
   cursor: pointer;
 }
 
-#game, #statScreen, #leaderboardScreen {
-  display: none;
-}
-
 #turnIndicator {
   font-weight: bold;
   margin: 10px;
@@ -67,8 +72,3 @@ button {
   font-size: 16px;
   white-space: pre-line;
 }
-
-#greeting {
-  font-size: 20px;
-  margin-bottom: 15px;
-  }
