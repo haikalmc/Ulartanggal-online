@@ -197,7 +197,18 @@ document.getElementById("btnOnline").onclick = () => {
       alert("Room sudah penuh!");
       return;
     }
-
+  };
+  
+document.getElementById("btnBot").onclick = () => {
+  positions = [1, 1];
+  currentPlayer = 1;
+  updatePawns();
+  turnIndicator.innerText = "Giliran: Kamu 🔴";
+  document.getElementById("menu").style.display = "none";
+  document.getElementById("game").style.display = "block";
+  isBotGame = true;
+  rollBtn.disabled = false;
+};
     const playerId = playerCount === 0 ? "p1" : "p2";
     playersRef.child(playerId).set(nickname);
 
