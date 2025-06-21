@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>🎲 Ular Tangga Online</title>
+  <title>Ular Tangga Online</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -12,13 +12,12 @@
     <h2 id="greeting">Halo, Guest!</h2>
     <button id="btnLocal">🎲 Main Lokal</button>
     <button id="btnOnline">🌐 Main Online</button>
-    <button id="btnBot">🤖 VS Bot</button>
     <button id="btnStatistik">📊 Statistik</button>
     <button id="btnLeaderboard">📶 Leaderboard</button>
-    <button id="btnGantiNickname">✏️ Ganti Nickname</button>
+    <button id="btnGantiNickname">✏ Ganti Nickname</button>
   </div>
 
-  <div id="game">
+  <div id="game" style="display:none">
     <div id="turnIndicator">Giliran: Pemain 1 🔴</div>
     <div id="board"></div>
     <div class="controls">
@@ -28,25 +27,21 @@
     </div>
   </div>
 
-  <div id="statScreen">
+  <div id="statScreen" style="display:none">
     <h2>📊 Statistik</h2>
-    <pre id="statText">Loading...</pre>
+    <pre id="statText"></pre>
     <button id="btnBackStat">🔙 Kembali</button>
   </div>
 
-  <div id="leaderboardScreen">
+  <div id="leaderboardScreen" style="display:none">
     <h2>📶 Leaderboard</h2>
     <div id="leaderboardList">Loading...</div>
     <button id="btnBackLeaderboard">🔙 Kembali</button>
   </div>
 
   <audio id="diceSound" src="dice-roll.mp3" preload="auto"></audio>
-
-  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-
-  <!-- Script -->
   <script src="script.js"></script>
 </body>
 </html>
