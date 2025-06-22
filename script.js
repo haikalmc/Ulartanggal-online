@@ -21,15 +21,14 @@ let botTimeout = null;
 const snakes = { 40: 1, 24: 6, 54: 27, 85: 65, 91: 73 };
 const ladders = { 9: 28, 18: 44, 15: 45, 55: 45, 50: 53, 60: 64, 87: 95 };
 
-// DOM elements
-document.getElementById("greeting").innerText = "Halo, " + nickname + "!";
 const board = document.getElementById("board");
 const rollBtn = document.getElementById("rollBtn");
 const dice = document.getElementById("dice");
 const turnIndicator = document.getElementById("turnIndicator");
 const diceSound = document.getElementById("diceSound");
 
-// Buat papan
+document.getElementById("greeting").innerText = "Halo, " + nickname + "!";
+
 function createBoard() {
   board.innerHTML = "";
   for (let row = 9; row >= 0; row--) {
@@ -43,7 +42,6 @@ function createBoard() {
   }
 }
 
-// Update pion
 function updatePawns() {
   document.querySelectorAll(".pawn").forEach(p => p.remove());
   positions.forEach((pos, i) => {
@@ -55,7 +53,6 @@ function updatePawns() {
   });
 }
 
-// Animasi dadu
 function animateDiceRoll(callback) {
   diceSound.play();
   let count = 0;
@@ -70,7 +67,6 @@ function animateDiceRoll(callback) {
   }, 100);
 }
 
-// Gerakkan pion
 function animateMove(player, steps, done) {
   let moved = 0;
   const move = setInterval(() => {
@@ -85,7 +81,6 @@ function animateMove(player, steps, done) {
   }, 300);
 }
 
-// Event roll dadu
 rollBtn.onclick = () => {
   rollBtn.disabled = true;
   animateDiceRoll(result => {
@@ -99,7 +94,6 @@ rollBtn.onclick = () => {
 
       if (pos === 100) {
         alert(`🏆 ${isBotGame ? (currentPlayer === 1 ? "Kamu" : "Bot") : `Pemain ${currentPlayer}`} menang!`);
-
         if (!isBotGame && nickname !== "Guest" && currentPlayer === 1) {
           const statsRef = db.ref("stats/" + nickname);
           statsRef.once("value").then(snapshot => {
@@ -109,10 +103,9 @@ rollBtn.onclick = () => {
             statsRef.set(data);
           });
         }
-
         positions = [1, 1];
-        currentPlayer = 1;
         updatePawns();
+        currentPlayer = 1;
         turnIndicator.innerText = "Giliran: Pemain 1 🔴";
         rollBtn.disabled = false;
         return;
@@ -134,7 +127,6 @@ rollBtn.onclick = () => {
   });
 };
 
-// Mode Lokal
 document.getElementById("btnLocal").onclick = () => {
   isBotGame = false;
   positions = [1, 1];
@@ -145,7 +137,6 @@ document.getElementById("btnLocal").onclick = () => {
   showScreen("game");
 };
 
-// Mode VS Bot
 document.getElementById("btnBot").onclick = () => {
   isBotGame = true;
   positions = [1, 1];
@@ -156,7 +147,50 @@ document.getElementById("btnBot").onclick = () => {
   showScreen("game");
 };
 
-// Mode Online
+document.getElementById("btnBackGame").onclick = () => {
+  showScreen("menu");
+  clearTimeout(botTimeout);
+};
+
+document.getElementById("btnGantiNickname").onclick = () => {
+  const newNick = prompt("Masukkan nickname baru:");
+  if (newNick) {
+    nickname = newNick;
+    localStorage.setItem("nickname", nickname);
+    document.getElementById("greeting").innerText = "Halo, " + nickname + "!";
+  }
+};
+
+document.getElementById("btnStatistik").onclick = () => {
+  const statsRef = db.ref("stats/" + nickname);
+  statsRef.once("value").then(snapshot => {
+    const data = snapshot.val();
+    document.getElementById("statText").innerText =
+      data ? `Nickname: ${nickname}\nMenang: ${data.menang}\nTotal Main: ${data.total}` : "Statistik tidak tersedia.";
+    showScreen("statScreen");
+  });
+};
+
+document.getElementById("btnBackStat").onclick = () => {
+  showScreen("menu");
+};
+
+document.getElementById("btnLeaderboard").onclick = () => {
+  db.ref("stats").once("value").then(snapshot => {
+    const data = snapshot.val();
+    const sorted = Object.entries(data || {}).sort((a, b) => (b[1].menang || 0) - (a[1].menang || 0));
+    const html = sorted.slice(0, 10).map(([name, val], i) =>
+      `<div>${i + 1}. ${name} - 🏆 ${val.menang || 0} | 🎮 ${val.total || 0}</div>`
+    ).join("");
+    document.getElementById("leaderboardList").innerHTML = html || "Leaderboard tidak tersedia.";
+    showScreen("leaderboardScreen");
+  });
+};
+
+document.getElementById("btnBackLeaderboard").onclick = () => {
+  showScreen("menu");
+};
+
 document.getElementById("btnOnline").onclick = () => {
   const roomCode = prompt("Masukkan kode room atau biarkan kosong untuk membuat:");
   if (roomCode === null) return;
@@ -178,65 +212,15 @@ document.getElementById("btnOnline").onclick = () => {
     playersRef.child(playerId).set(nickname);
 
     alert(`Berhasil masuk ke room: ${finalRoom} sebagai ${playerId}`);
-    startOnlineGame(finalRoom, playerId);
     isBotGame = false;
     clearTimeout(botTimeout);
+    // Di sini kamu bisa lanjut ke gameplay online sesuai room
   });
 };
 
-// Kembali ke menu dari game lokal/bot
-document.getElementById("btnBackGame").onclick = () => {
-  showScreen("menu");
-  if (botTimeout) clearTimeout(botTimeout); // Pastikan bot berhenti
-};
-
-// Ganti nickname
-document.getElementById("btnGantiNickname").onclick = () => {
-  const newNick = prompt("Masukkan nickname baru:");
-  if (newNick) {
-    nickname = newNick;
-    localStorage.setItem("nickname", nickname);
-    document.getElementById("greeting").innerText = "Halo, " + nickname + "!";
-  }
-};
-
-// Statistik
-document.getElementById("btnStatistik").onclick = () => {
-  const statsRef = db.ref("stats/" + nickname);
-  statsRef.once("value").then(snapshot => {
-    const data = snapshot.val();
-    document.getElementById("statText").innerText =
-      data ? `Nickname: ${nickname}\nMenang: ${data.menang}\nTotal Main: ${data.total}` : "Statistik tidak tersedia.";
-    showScreen("statScreen");
-  });
-};
-
-document.getElementById("btnBackStat").onclick = () => {
-  showScreen("menu");
-};
-
-// Leaderboard
-document.getElementById("btnLeaderboard").onclick = () => {
-  db.ref("stats").once("value").then(snapshot => {
-    const data = snapshot.val();
-    const sorted = Object.entries(data || {}).sort((a, b) => (b[1].menang || 0) - (a[1].menang || 0));
-    const html = sorted.slice(0, 10).map(([name, val], i) =>
-      `<div>${i + 1}. ${name} - 🏆 ${val.menang || 0} | 🎮 ${val.total || 0}</div>`
-    ).join("");
-    document.getElementById("leaderboardList").innerHTML = html || "Leaderboard tidak tersedia.";
-    showScreen("leaderboardScreen");
-  });
-};
-
-document.getElementById("btnBackLeaderboard").onclick = () => {
-  showScreen("menu");
-};
-
-// Ganti screen
 function showScreen(screenId) {
   ["menu", "game", "statScreen", "leaderboardScreen"].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.style.display = id === screenId ? "block" : "none";
+    document.getElementById(id).style.display = id === screenId ? "block" : "none";
   });
 }
 
