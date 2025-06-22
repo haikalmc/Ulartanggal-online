@@ -1,3 +1,4 @@
+// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyDKBpjaKi4h6m7Jk8syIOzSMz36EqdeyPE",
   authDomain: "ulartangga-cf5c1.firebaseapp.com",
@@ -10,14 +11,17 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
+// Game state
 let nickname = localStorage.getItem("nickname") || "Guest";
-document.getElementById("greeting").innerText = "Halo, " + nickname + "!";
-
 let currentPlayer = 1;
 let positions = [1, 1];
+let isBotGame = false;
+
 const snakes = { 40: 1, 24: 6, 54: 27, 85: 65, 91: 73 };
 const ladders = { 9: 28, 18: 44, 15: 45, 55: 45, 50: 53, 60: 64, 87: 95 };
 
+// DOM
+document.getElementById("greeting").innerText = "Halo, " + nickname + "!";
 const board = document.getElementById("board");
 const rollBtn = document.getElementById("rollBtn");
 const dice = document.getElementById("dice");
@@ -42,7 +46,7 @@ function updatePawns() {
   positions.forEach((pos, i) => {
     const pawn = document.createElement("div");
     pawn.className = "pawn";
-    pawn.textContent = i === 0 ? "🔴" : "🔵";
+    pawn.textContent = i === 0 ? "🔴" : (isBotGame ? "🤖" : "🔵");
     const cell = document.getElementById("cell-" + pos);
     if (cell) cell.appendChild(pawn);
   });
@@ -81,13 +85,23 @@ rollBtn.onclick = () => {
   animateDiceRoll(result => {
     const idx = currentPlayer - 1;
     animateMove(idx, result, () => {
-      if (ladders[positions[idx]]) positions[idx] = ladders[positions[idx]];
-      if (snakes[positions[idx]]) positions[idx] = snakes[positions[idx]];
+      let pos = positions[idx];
+      if (ladders[pos]) pos = ladders[pos];
+      if (snakes[pos]) pos = snakes[pos];
+      positions[idx] = pos;
       updatePawns();
 
-      if (positions[idx] === 100) {
-        alert(`🏆 Pemain ${currentPlayer} menang!`);
-        saveWin(currentPlayer);
+      if (pos === 100) {
+        alert(`🏆 ${isBotGame ? (currentPlayer === 1 ? "Kamu" : "Bot") : `Pemain ${currentPlayer}`} menang!`);
+        if (!isBotGame && nickname !== "Guest" && currentPlayer === 1) {
+          const statsRef = db.ref("stats/" + nickname);
+          statsRef.once("value").then(snapshot => {
+            const data = snapshot.val() || { total: 0, menang: 0 };
+            data.total += 1;
+            data.menang += 1;
+            statsRef.set(data);
+          });
+        }
         positions = [1, 1];
         updatePawns();
         currentPlayer = 1;
@@ -97,35 +111,51 @@ rollBtn.onclick = () => {
       }
 
       currentPlayer = currentPlayer === 1 ? 2 : 1;
-      turnIndicator.innerText = `Giliran: Pemain ${currentPlayer} ${currentPlayer === 1 ? "🔴" : "🔵"}`;
-      rollBtn.disabled = false;
+      turnIndicator.innerText = isBotGame
+        ? `Giliran: ${currentPlayer === 1 ? "Kamu 🔴" : "Bot 🤖"}`
+        : `Giliran: Pemain ${currentPlayer} ${currentPlayer === 1 ? "🔴" : "🔵"}`;
+
+      if (isBotGame && currentPlayer === 2) {
+        setTimeout(() => rollBtn.onclick(), 1000);
+      } else {
+        rollBtn.disabled = false;
+      }
     });
   });
 };
 
-function saveWin(player) {
-  if (nickname === "Guest") return;
-  const statsRef = db.ref("stats/" + nickname);
-  statsRef.once("value").then(snapshot => {
-    const data = snapshot.val() || { total: 0, menang: 0 };
-    data.total += 1;
-    if (player === 1) data.menang += 1;
-    statsRef.set(data);
-  });
-}
-
+// Tombol navigasi
 document.getElementById("btnLocal").onclick = () => {
+  isBotGame = false;
   positions = [1, 1];
   currentPlayer = 1;
+  createBoard();
   updatePawns();
   turnIndicator.innerText = "Giliran: Pemain 1 🔴";
-  document.getElementById("menu").style.display = "none";
-  document.getElementById("game").style.display = "block";
+  showScreen("game");
+};
+
+document.getElementById("btnBot").onclick = () => {
+  isBotGame = true;
+  positions = [1, 1];
+  currentPlayer = 1;
+  createBoard();
+  updatePawns();
+  turnIndicator.innerText = "Giliran: Kamu 🔴";
+  showScreen("game");
 };
 
 document.getElementById("btnBackGame").onclick = () => {
-  document.getElementById("game").style.display = "none";
-  document.getElementById("menu").style.display = "block";
+  showScreen("menu");
+};
+
+document.getElementById("btnGantiNickname").onclick = () => {
+  const newNick = prompt("Masukkan nickname baru:");
+  if (newNick) {
+    nickname = newNick;
+    localStorage.setItem("nickname", nickname);
+    document.getElementById("greeting").innerText = "Halo, " + nickname + "!";
+  }
 };
 
 document.getElementById("btnStatistik").onclick = () => {
@@ -133,15 +163,13 @@ document.getElementById("btnStatistik").onclick = () => {
   statsRef.once("value").then(snapshot => {
     const data = snapshot.val();
     document.getElementById("statText").innerText =
-      data ? `Nickname: ${nickname}\nMenang: ${data.menang}\nTotal Main: ${data.total}` : "Statistik tidak tersedia";
-    document.getElementById("menu").style.display = "none";
-    document.getElementById("statScreen").style.display = "block";
+      data ? `Nickname: ${nickname}\nMenang: ${data.menang}\nTotal Main: ${data.total}` : "Statistik tidak tersedia.";
+    showScreen("statScreen");
   });
 };
 
 document.getElementById("btnBackStat").onclick = () => {
-  document.getElementById("statScreen").style.display = "none";
-  document.getElementById("menu").style.display = "block";
+  showScreen("menu");
 };
 
 document.getElementById("btnLeaderboard").onclick = () => {
@@ -151,25 +179,20 @@ document.getElementById("btnLeaderboard").onclick = () => {
     const html = sorted.slice(0, 10).map(([name, val], i) =>
       `<div>${i + 1}. ${name} - 🏆 ${val.menang || 0} | 🎮 ${val.total || 0}</div>`
     ).join("");
-    document.getElementById("leaderboardList").innerHTML = html || "Leaderboard tidak tersedia";
-    document.getElementById("menu").style.display = "none";
-    document.getElementById("leaderboardScreen").style.display = "block";
+    document.getElementById("leaderboardList").innerHTML = html || "Leaderboard tidak tersedia.";
+    showScreen("leaderboardScreen");
   });
 };
 
 document.getElementById("btnBackLeaderboard").onclick = () => {
-  document.getElementById("leaderboardScreen").style.display = "none";
-  document.getElementById("menu").style.display = "block";
+  showScreen("menu");
 };
 
-document.getElementById("btnGantiNickname").onclick = () => {
-  const newNick = prompt("Masukkan nickname baru:");
-  if (newNick) {
-    nickname = newNick;
-    localStorage.setItem("nickname", nickname);
-    document.getElementById("greeting").innerText = `Halo, ${nickname}!`;
-  }
-};
+function showScreen(screenId) {
+  ["menu", "game", "statScreen", "leaderboardScreen"].forEach(id => {
+    document.getElementById(id).style.display = id === screenId ? "block" : "none";
+  });
+}
 
 createBoard();
 updatePawns();
