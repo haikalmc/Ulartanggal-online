@@ -148,6 +148,33 @@ document.getElementById("btnBot").onclick = () => {
   showScreen("game");
 };
 
+document.getElementById("btnOnline").onclick = () => {
+  const roomCode = prompt("Masukkan kode room atau biarkan kosong untuk membuat:");
+  if (roomCode === null) return;
+
+  const finalRoom = roomCode.trim() || Math.random().toString(36).substring(2, 7);
+  const roomRef = db.ref("rooms/" + finalRoom);
+  const playersRef = roomRef.child("players");
+
+  playersRef.once("value").then(snapshot => {
+    const players = snapshot.val() || {};
+    const playerCount = Object.keys(players).length;
+
+    if (playerCount >= 2) {
+      alert("Room sudah penuh!");
+      return;
+    }
+
+    const playerId = playerCount === 0 ? "p1" : "p2";
+    playersRef.child(playerId).set(nickname);
+
+    alert(`Berhasil masuk ke room: ${finalRoom} sebagai ${playerId}`);
+    startOnlineGame(finalRoom, playerId);
+    isBotGame = false;
+clearTimeout(botTimeout);
+  });
+};
+
 document.getElementById("btnBackGame").onclick = () => {
   showScreen("menu");
   if (botTimeout) clearTimeout(botTimeout); // ✅ Tambahkan ini
