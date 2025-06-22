@@ -212,9 +212,18 @@ document.getElementById("btnOnline").onclick = () => {
     playersRef.child(playerId).set(nickname);
 
     alert(`Berhasil masuk ke room: ${finalRoom} sebagai ${playerId}`);
+    startOnlineGame(finalRoom, playerId);
     isBotGame = false;
     clearTimeout(botTimeout);
-    // Di sini kamu bisa lanjut ke gameplay online sesuai room
+
+    // ⬇️ Tambahan: jika player 2 masuk, langsung mulai game
+    if (playerId === "p2") {
+      createBoard();
+      updatePawns();
+      currentPlayer = 1;
+      turnIndicator.innerText = "Giliran: Pemain 1 🔴";
+      showScreen("game");
+    }
   });
 };
 
