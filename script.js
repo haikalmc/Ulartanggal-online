@@ -16,6 +16,7 @@ let nickname = localStorage.getItem("nickname") || "Guest";
 let currentPlayer = 1;
 let positions = [1, 1];
 let isBotGame = false;
+let botTimeout = null; // untuk menyimpan ID setTimeout
 
 const snakes = { 40: 1, 24: 6, 54: 27, 85: 65, 91: 73 };
 const ladders = { 9: 28, 18: 44, 15: 45, 55: 45, 50: 53, 60: 64, 87: 95 };
@@ -116,9 +117,11 @@ rollBtn.onclick = () => {
         : `Giliran: Pemain ${currentPlayer} ${currentPlayer === 1 ? "🔴" : "🔵"}`;
 
       if (isBotGame && currentPlayer === 2) {
-        setTimeout(() => rollBtn.onclick(), 1000);
-      } else {
-        rollBtn.disabled = false;
+  botTimeout = setTimeout(() => {
+    if (isBotGame) rollBtn.onclick();
+  }, 1000);
+} else {
+  rollBtn.disabled = false;
       }
     });
   });
@@ -147,6 +150,7 @@ document.getElementById("btnBot").onclick = () => {
 
 document.getElementById("btnBackGame").onclick = () => {
   showScreen("menu");
+  if (botTimeout) clearTimeout(botTimeout); // ✅ Tambahkan ini
 };
 
 document.getElementById("btnGantiNickname").onclick = () => {
