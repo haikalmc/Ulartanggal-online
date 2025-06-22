@@ -10,15 +10,15 @@
   <div id="menu">
     <h1>🎲 Ular Tangga</h1>
     <h2 id="greeting">Halo, Guest!</h2>
-    <button id="btnLocal">🎮 Main Lokal</button>
-    <button id="btnBot">🤖 VS Bot</button>
+    <button id="btnLocal">🎲 Main Lokal</button>
     <button id="btnOnline">🌐 Main Online</button>
+    <button id="btnBot">🤖 Main VS Bot</button>
     <button id="btnStatistik">📊 Statistik</button>
     <button id="btnLeaderboard">📶 Leaderboard</button>
     <button id="btnGantiNickname">✏ Ganti Nickname</button>
   </div>
 
-  <div id="game" style="display: none;">
+  <div id="game" style="display:none">
     <div id="turnIndicator">Giliran: Pemain 1 🔴</div>
     <div id="board"></div>
     <div class="controls">
@@ -41,8 +41,12 @@
   </div>
 
   <audio id="diceSound" src="dice-roll.mp3" preload="auto"></audio>
+
+  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+  
+  <!-- Script -->
   <script src="script.js"></script>
 </body>
 </html>
