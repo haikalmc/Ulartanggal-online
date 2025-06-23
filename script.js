@@ -207,7 +207,9 @@ document.getElementById("btnOnline").onclick = () => {
       alert("Room sudah penuh!");
       return;
     }
-
+  });
+};
+ 
     const playerId = playerCount === 0 ? "p1" : "p2";
     playersRef.child(playerId).set(nickname);
 
@@ -215,18 +217,14 @@ document.getElementById("btnOnline").onclick = () => {
     startOnlineGame(finalRoom, playerId);
     isBotGame = false;
     clearTimeout(botTimeout);
-
-    // ⬇️ Tambahan: jika player 2 masuk, langsung mulai game
     if (playerId === "p2") {
-      createBoard();
-      updatePawns();
-      currentPlayer = 1;
-      turnIndicator.innerText = "Giliran: Pemain 1 🔴";
-      showScreen("game");
+  createBoard();
+  updatePawns();
+  currentPlayer = 1;
+  turnIndicator.innerText = "Giliran: Pemain 1 🔴";
+  showScreen("game");
     }
-  });
-};
-
+    
 function showScreen(screenId) {
   ["menu", "game", "statScreen", "leaderboardScreen"].forEach(id => {
     document.getElementById(id).style.display = id === screenId ? "block" : "none";
